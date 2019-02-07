@@ -119,7 +119,7 @@ class MAS():
                     agent.move_direction([0,-1], agent.v, self.state.dt)
             elif action == 'East':
                 for agent in self.state.agents:
-                    agent.move_direction([1,0], agent.v, self.state.dt)
+                        agent.move_direction([1,0], agent.v, self.state.dt)
             elif action == 'West':
                 for agent in self.state.agents:
                     agent.move_direction([-1,0], agent.v, self.state.dt)
