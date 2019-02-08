@@ -30,6 +30,7 @@ class MAS():
         self.foldername = os.path.join(os.getcwd(), self.basename, 'results', self.datestr)
 
         self.setup_data()
+        self.dir_to_vec = {'North': [0,1], 'South': [0,-1], 'East': [1,0], 'West': [-1,0]}
 
         self.speeds = [5.0] * self.noAgents
         self.allResults = []
@@ -105,28 +106,25 @@ class MAS():
                         agent.improveComms(0.25)
 
 
-    def iterate(self, action=None):
-
-        self.iteration+=1
-        logging.info('Running Iteration %i' %self.iteration)
-
-        if type(action) is str:
-            if action == 'North':
-                for agent in self.state.agents:
-                    agent.move_direction([0,1], agent.v, self.state.dt)
-            elif action == 'South':
-                for agent in self.state.agents:
-                    agent.move_direction([0,-1], agent.v, self.state.dt)
-            elif action == 'East':
-                for agent in self.state.agents:
-                        agent.move_direction([1,0], agent.v, self.state.dt)
-            elif action == 'West':
-                for agent in self.state.agents:
-                    agent.move_direction([-1,0], agent.v, self.state.dt)
+    def iterate(self, actions=None):
+        self.iteration += 1
+        logging.info('Running Iteration %i' % self.iteration)
+        if actions == None:
+            pass
         else:
-            for agent in self.state.agents:
-                vec = [np.cos(action), np.sin(action)]
-                agent.move_direction(vec, agent.v, self.state.dt)
+            if len(actions) != self.noAgents:
+                actions = [actions[0] for _ in range(self.noAgents)]  # just copy the first one to all
+            a = 0
+            for action in actions:
+                if type(action) is str:
+                    self.state.agents[a].move_direction(self.dir_to_vec[action], self.state.agents[a].v, self.state.dt)
+                    a += 1
+                elif type(action) is np.ndarray or type(action) is float:
+                    if type(action) is np.ndarray:
+                        action = action[0]
+                    vec = [np.cos(action), np.sin(action)]
+                    self.state.agents[a].move_direction(vec, self.state.agents[a].v, self.state.dt)
+                    a += 1
 
         # lets make sure they don't leave
         for agent in self.state.agents:
@@ -158,14 +156,14 @@ class MAS():
 
 
 
-    def plot_iteration(self):
+    def plot_iteration(self, save_plot=True):
         ############ Plot ############
         iter = '_i%03d' % self.iteration
         self.timers['visualisation'][0] = time.time()
         if not hasattr(self, 'Routes'):
             self.plot_initial_state()
         else:
-            ax, lines = visualisation.plot_result(self.state, self.Routes, [], logbook=None, foldername=self.foldername,save_plot=True, suffix=iter, commsRadius=self.settings['useComms'], considerationRadius=self.settings['considerationRadius'])
+            ax, lines = visualisation.plot_result(self.state, self.Routes, [], logbook=None, foldername=self.foldername, save_plot=save_plot, suffix=iter, commsRadius=self.settings['useComms'], considerationRadius=self.settings['considerationRadius'])
         self.timers['visualisation'][1] = time.time()
 
 
@@ -206,12 +204,12 @@ if __name__ == "__main__":
 
     # lets try some discrete actions
     for i in range(1, 10):
-        action = random.choice(action_strs)#direction
-        mas_sim.iterate(action)
+        actions = [random.choice(action_strs) for _ in range(noAgents)]#direction
+        mas_sim.iterate(actions)
         mas_sim.plot_iteration()
 
     # lets try some continous actions
     for i in range(1, 10):
-        action = random.uniform(-np.pi, np.pi) #angle in radians
-        mas_sim.iterate(action)
+        actions = [random.uniform(-np.pi, np.pi) for _ in range(noAgents)] #angle in radians
+        mas_sim.iterate(actions)
         mas_sim.plot_iteration()

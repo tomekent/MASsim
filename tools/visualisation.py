@@ -274,5 +274,3 @@ def convert_to_video(foldername):
     subprocess.call('pwd')
     subprocess.call("./EATSP/create_video.sh %s" %foldername,  shell=True)
     logging.info('Conversion Complete.')
-
-
